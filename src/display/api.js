@@ -1002,6 +1002,7 @@ class PDFPageProxy {
            canvasFactory = null, background = null, }) {
     const stats = this._stats;
     stats.time('Overall');
+    // console.log('render', this);
 
     // If there was a pending destroy, cancel it so no cleanup happens during
     // this call to render.
@@ -1094,7 +1095,8 @@ class PDFPageProxy {
         return;
       }
       stats.time('Rendering');
-      internalRenderTask.initializeGraphics(transparency);
+      // console.log('PDFPageProxy.render')
+      internalRenderTask.initializeGraphics(transparency, this._external_data);
       internalRenderTask.operatorListChanged();
     }).catch(complete);
 
@@ -2557,7 +2559,7 @@ const InternalRenderTask = (function InternalRenderTaskClosure() {
       this._canvas = params.canvasContext.canvas;
     }
 
-    initializeGraphics(transparency = false) {
+    initializeGraphics(transparency = false, _external_data) {
       if (this.cancelled) {
         return;
       }
@@ -2581,9 +2583,11 @@ const InternalRenderTask = (function InternalRenderTaskClosure() {
         canvasContext, viewport, transform, imageLayer, background,
       } = this.params;
 
+      // console.log('api.internalRenderTask');
       this.gfx = new CanvasGraphics(canvasContext, this.commonObjs, this.objs,
                                     this.canvasFactory, this.webGLContext,
                                     imageLayer);
+      this.gfx._external_data = _external_data;
       this.gfx.beginDrawing({
         transform,
         viewport,

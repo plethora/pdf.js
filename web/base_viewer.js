@@ -441,6 +441,7 @@ class BaseViewer {
           maxCanvasPixels: this.maxCanvasPixels,
           l10n: this.l10n,
         });
+        pageView._external_data = this._external_data;
         this._pages.push(pageView);
       }
       if (this._spreadMode !== SpreadMode.NONE) {
@@ -949,6 +950,8 @@ class BaseViewer {
    * @private
    */
   _ensurePdfPageLoaded(pageView) {
+    // console.log('_ensurePdfPageLoaded', this, pageView);
+    // console.log(this._external_data);
     if (pageView.pdfPage) {
       return Promise.resolve(pageView.pdfPage);
     }
@@ -957,6 +960,7 @@ class BaseViewer {
       return this._pagesRequests[pageNumber];
     }
     let promise = this.pdfDocument.getPage(pageNumber).then((pdfPage) => {
+      pdfPage._external_data = this._external_data;
       if (!pageView.pdfPage) {
         pageView.setPdfPage(pdfPage);
       }
@@ -975,6 +979,7 @@ class BaseViewer {
     let visiblePages = currentlyVisiblePages || this._getVisiblePages();
     let scrollAhead = (this._isScrollModeHorizontal ?
                        this.scroll.right : this.scroll.down);
+    // console.log('forceRendering', this._pages);
     let pageView = this.renderingQueue.getHighestPriority(visiblePages,
                                                           this._pages,
                                                           scrollAhead);

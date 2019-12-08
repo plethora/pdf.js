@@ -111,6 +111,7 @@ class PDFPageView {
   }
 
   setPdfPage(pdfPage) {
+    console.log('setPdfPage', pdfPage);
     this.pdfPage = pdfPage;
     this.pdfPageRotate = pdfPage.rotate;
 
@@ -578,6 +579,12 @@ class PDFPageView {
       enableWebGL: this.enableWebGL,
       renderInteractiveForms: this.renderInteractiveForms,
     };
+    // console.log('web/pdf_page_view.paintOnCanvas:', this, this.pdfPage, renderContext);
+    // PDFPageView
+    // PDFPageProxy
+    // canvas.canvasContext : CanvasRenderingContext2D
+    // canvas.transform : [2D projective]
+    // canvas.viewport : PageViewport
     let renderTask = this.pdfPage.render(renderContext);
     renderTask.onContinue = function (cont) {
       showCanvas();

@@ -150,6 +150,8 @@ var WorkerMessageHandler = {
       var pdfManagerCapability = createPromiseCapability();
       var pdfManager;
 
+      // console.log('getPdfManager', getPdfManager);
+
       var source = data.source;
       if (source.data) {
         try {

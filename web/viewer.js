@@ -57,6 +57,10 @@ if (typeof PDFJSDev !== 'undefined' && PDFJSDev.test('CHROME || GENERIC')) {
 
 function getViewerConfiguration() {
   return {
+    _external_data: {
+      something: 'else',
+      id: 0,
+    },
     appContainer: document.body,
     mainContainer: document.getElementById('viewerContainer'),
     viewerContainer: document.getElementById('viewer'),

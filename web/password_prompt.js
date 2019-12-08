@@ -49,15 +49,15 @@ class PasswordPrompt {
     this.reason = null;
 
     // Attach the event listeners.
-    this.submitButton.addEventListener('click', this.verify.bind(this));
-    this.cancelButton.addEventListener('click', this.close.bind(this));
-    this.input.addEventListener('keydown', (e) => {
+    if (this.submitButton) this.submitButton.addEventListener('click', this.verify.bind(this));
+    if (this.cancelButton) this.cancelButton.addEventListener('click', this.close.bind(this));
+    if (this.input) this.input.addEventListener('keydown', (e) => {
       if (e.keyCode === 13) { // Enter key
         this.verify();
       }
     });
 
-    this.overlayManager.register(this.overlayName, this.container,
+    if (this.container) this.overlayManager.register(this.overlayName, this.container,
                                  this.close.bind(this), true);
   }
 

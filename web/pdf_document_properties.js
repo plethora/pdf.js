@@ -69,8 +69,10 @@ class PDFDocumentProperties {
     if (closeButton) { // Bind the event listener for the Close button.
       closeButton.addEventListener('click', this.close.bind(this));
     }
-    this.overlayManager.register(this.overlayName, this.container,
-                                 this.close.bind(this));
+    if (this.container) {
+      this.overlayManager.register(this.overlayName, this.container,
+                                  this.close.bind(this));
+    }
 
     if (eventBus) {
       eventBus.on('pagechanging', (evt) => {
@@ -132,6 +134,7 @@ class PDFDocumentProperties {
         ]);
       }).then(([info, metadata, fileName, fileSize, creationDate, modDate,
                 pageSize, isLinearized]) => {
+        console.log(info, pageSize);
         freezeFieldData({
           'fileName': fileName,
           'fileSize': fileSize,
@@ -276,6 +279,7 @@ class PDFDocumentProperties {
    * @private
    */
   async _parsePageSize(pageSizeInches, pagesRotation) {
+    console.log('_parsePageSize', pageSizeInches, pagesRotation);
     if (!pageSizeInches) {
       return undefined;
     }

@@ -1,68 +1,133 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>'Hello, world!' example</title>
 </head>
+
 <body>
 
-<h1>'Hello, world!' example</h1>
+  <h1>'Hello, world!' example</h1>
 
-<canvas id="the-canvas" style="border:1px  solid black"></canvas>
+  <canvas id="the-canvas" style="border:1px  solid black"></canvas>
 
-<script src="../../node_modules/pdfjs-dist/build/pdf.js"></script>
+  <!-- <script src="../../node_modules/pdfjs-dist/build/pdf.js"></script> -->
+  <script src="../../build/generic/build/pdf.js"></script>
 
-<script id="script">
-  //
-  // If absolute URL from the remote server is provided, configure the CORS
-  // header on that server.
-  //
-  var url = './helloworld.pdf';
-
-  //
-  // The workerSrc property shall be specified.
-  //
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    '../../node_modules/pdfjs-dist/build/pdf.worker.js';
-
-  //
-  // Asynchronous download PDF
-  //
-  var loadingTask = pdfjsLib.getDocument(url);
-  loadingTask.promise.then(function(pdf) {
+  <script id="script">
     //
-    // Fetch the first page
+    // If absolute URL from the remote server is provided, configure the CORS
+    // header on that server.
     //
-    pdf.getPage(1).then(function(page) {
-      var scale = 1.5;
-      var viewport = page.getViewport({ scale: scale, });
+    // var url = './helloworld.pdf';
+    var url = './drawing.PDF'
 
-      //
-      // Prepare canvas using PDF page dimensions
-      //
-      var canvas = document.getElementById('the-canvas');
-      var context = canvas.getContext('2d');
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
+    //
+    // The workerSrc property shall be specified.
+    //
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      // '../../node_modules/pdfjs-dist/build/pdf.worker.js';
+      '../../build/generic//build/pdf.worker.js';
 
+
+    // LinkService.navigateTo
+    // this.pdfDocument.getDestination(dest).then((destArray) => {
+
+    //
+    // Asynchronous download PDF
+    //
+    var loadingTask = pdfjsLib.getDocument(url);
+    loadingTask.promise.then(function (pdf) {
       //
-      // Render PDF page into canvas context
+      // Fetch the first page
       //
-      var renderContext = {
-        canvasContext: context,
-        viewport: viewport,
-      };
-      page.render(renderContext);
+      // PDFDocumentProxy
+      /**
+       * Proxy to a PDFDocument in the worker thread. Also, contains commonly used
+       * properties that can be read synchronously.
+       */
+      // pdf.getDestinations().then(function (data) {
+      //   console.log(data;
+      // });
+      pdf.getOutline().then(function (data) {
+        /**
+         * @return {Promise} A promise that is resolved with an {Array} that is a
+         * tree outline (if it has one) of the PDF. The tree is in the format of:
+         * [
+         *   {
+         *     title: string,
+         *     bold: boolean,
+         *     italic: boolean,
+         *     color: rgb Uint8ClampedArray,
+         *     count: integer or undefined,
+         *     dest: dest obj,
+         *     url: string,
+         *     items: array of more items like this
+         *   },
+         *   ...
+         * ]
+         */
+        // destination object??
+
+        // PDF LINK SERVICE: getDestinationHash(dest)
+        // PDFLinkService
+        console.log(data);
+      });
+
+
+      // pdfDoc.getPage(1).then((pdfPage) => {
+      //     pdfPage.getOperatorList().then((opList) => {
+      //       let imgIndex = opList.fnArray.indexOf(OPS.paintImageXObject);
+      //       let imgArgs = opList.argsArray[imgIndex];
+      //       let { data, } = pdfPage.objs.get(imgArgs[0]);
+
+      //       expect(data instanceof Uint8ClampedArray).toEqual(true);
+      //       expect(data.length).toEqual(90000);
+
+      //       loadingTask.destroy().then(done);
+      //     });
+      //   });
+
+      pdf.getPage(1).then(function (page) {
+        var scale = 1.5;
+        // Get viewing dimensions of PDF
+        var viewport = page.getViewport({ scale: scale, });
+
+        // page.getAnnotations().then(function (data) {
+        //   console.log(data);
+        // });
+        page.getOperatorList().then(function (data) {
+          console.log(data);
+        });
+
+        //
+        // Prepare canvas using PDF page dimensions
+        //
+        var canvas = document.getElementById('the-canvas');
+        var context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        //
+        // Render PDF page into canvas context
+        //
+        var renderContext = {
+          canvasContext: context,
+          viewport: viewport,
+        };
+        page.render(renderContext);
+      });
     });
-  });
-</script>
+  </script>
 
-<hr>
-<h2>JavaScript code:</h2>
-<pre id="code"></pre>
-<script>
-  document.getElementById('code').textContent =
+  <hr>
+  <h2>JavaScript code:</h2>
+  <pre id="code"></pre>
+  <script>
+    document.getElementById('code').textContent =
       document.getElementById('script').text;
-</script>
+  </script>
 </body>
+
 </html>

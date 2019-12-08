@@ -142,6 +142,7 @@ let PDFViewerApplication = {
 
   // Called once when the document is loaded.
   async initialize(appConfig) {
+    console.log('initialize');
     this.preferences = this.externalServices.createPreferences();
     this.appConfig = appConfig;
 
@@ -312,6 +313,7 @@ let PDFViewerApplication = {
 
     const container = appConfig.mainContainer;
     const viewer = appConfig.viewerContainer;
+    console.log('CREATE PDFViewer')
     this.pdfViewer = new PDFViewer({
       container,
       viewer,
@@ -330,6 +332,7 @@ let PDFViewerApplication = {
       useOnlyCssZoom: AppOptions.get('useOnlyCssZoom'),
       maxCanvasPixels: AppOptions.get('maxCanvasPixels'),
     });
+    this.pdfViewer._external_data = appConfig._external_data;
     pdfRenderingQueue.setViewer(this.pdfViewer);
     pdfLinkService.setViewer(this.pdfViewer);
 
@@ -713,33 +716,48 @@ let PDFViewerApplication = {
   },
 
   download() {
-    function downloadByUrl() {
-      downloadManager.downloadUrl(url, filename);
+    
+    console.log(this.appConfig);
+    function downloadImage(canvas)
+    {
+        var image = canvas.toDataURL();
+        var aLink = document.createElement('a');
+        aLink.download = 'image.png';
+        aLink.href = image;
+        aLink.click()
     }
+    const canvas = document.getElementById("page1");
+    downloadImage(canvas);
 
-    let url = this.baseUrl;
-    // Use this.url instead of this.baseUrl to perform filename detection based
-    // on the reference fragment as ultimate fallback if needed.
-    let filename = this.contentDispositionFilename ||
-      getPDFFileNameFromURL(this.url);
-    let downloadManager = this.downloadManager;
-    downloadManager.onerror = (err) => {
-      // This error won't really be helpful because it's likely the
-      // fallback won't work either (or is already open).
-      this.error(`PDF failed to download: ${err}`);
-    };
 
-    // When the PDF document isn't ready, or the PDF file is still downloading,
-    // simply download using the URL.
-    if (!this.pdfDocument || !this.downloadComplete) {
-      downloadByUrl();
-      return;
-    }
 
-    this.pdfDocument.getData().then(function(data) {
-      const blob = new Blob([data], { type: 'application/pdf', });
-      downloadManager.download(blob, url, filename);
-    }).catch(downloadByUrl); // Error occurred, try downloading with the URL.
+    // function downloadByUrl() {
+    //   downloadManager.downloadUrl(url, filename);
+    // }
+
+    // let url = this.baseUrl;
+    // // Use this.url instead of this.baseUrl to perform filename detection based
+    // // on the reference fragment as ultimate fallback if needed.
+    // let filename = this.contentDispositionFilename ||
+    //   getPDFFileNameFromURL(this.url);
+    // let downloadManager = this.downloadManager;
+    // downloadManager.onerror = (err) => {
+    //   // This error won't really be helpful because it's likely the
+    //   // fallback won't work either (or is already open).
+    //   this.error(`PDF failed to download: ${err}`);
+    // };
+
+    // // When the PDF document isn't ready, or the PDF file is still downloading,
+    // // simply download using the URL.
+    // if (!this.pdfDocument || !this.downloadComplete) {
+    //   downloadByUrl();
+    //   return;
+    // }
+
+    // this.pdfDocument.getData().then(function(data) {
+    //   const blob = new Blob([data], { type: 'application/pdf', });
+    //   downloadManager.download(blob, url, filename);
+    // }).catch(downloadByUrl); // Error occurred, try downloading with the URL.
   },
 
   fallback(featureId) {
@@ -914,6 +932,7 @@ let PDFViewerApplication = {
     }
     this.pdfLinkService.setDocument(pdfDocument, baseDocumentUrl);
     this.pdfDocumentProperties.setDocument(pdfDocument, this.url);
+    console.log(this.pdfDocumentProperties);
 
     let pdfViewer = this.pdfViewer;
     pdfViewer.setDocument(pdfDocument);
@@ -1095,6 +1114,7 @@ let PDFViewerApplication = {
 
     onePageRendered.then(() => {
       pdfDocument.getOutline().then((outline) => {
+        console.log('outline', outline);
         this.pdfOutlineViewer.render({ outline, });
       });
       pdfDocument.getAttachments().then((attachments) => {
