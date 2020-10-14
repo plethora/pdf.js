@@ -37,6 +37,7 @@
     "merge-stream": "^1.0.1",
     "mkdirp": "^0.5.1",
     "node-ensure": "^0.0.0",
+    "nomnom": "^1.8.1",
     "prettier": "^1.18.2",
     "rimraf": "^2.7.1",
     "streamqueue": "^1.1.2",
@@ -59,5 +60,11 @@
     "type": "git",
     "url": "git://github.com/mozilla/pdf.js.git"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "bluebird": "^3.7.2",
+    "node-libpng": "^0.2.14",
+    "pdfjs-dist": "^2.2.228",
+    "pngjs": "^3.4.0"
+  }
 }

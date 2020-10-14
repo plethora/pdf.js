@@ -19,10 +19,10 @@ import {
 } from '../shared/util';
 import { getShadingPatternFromIR, TilingPattern } from './pattern_helper';
 
-var rgbToHex = function (rgb) { 
+var rgbToHex = function (rgb) {
   var hex = Number(rgb).toString(16);
   if (hex.length < 2) {
-       hex = "0" + hex;
+       hex = '0' + hex;
   }
   return hex;
 };
@@ -32,7 +32,7 @@ var idToHex = function(id) {
   const g = Math.floor(id / 256) % 256;
   const b = Math.floor(id / (256 * 256)) % 256;
   return `#${rgbToHex(r)}${rgbToHex(g)}${rgbToHex(255)}`;
-}
+};
 
 // <canvas> contexts store most of the state we need natively.
 // However, PDF needs a bit more state, which we store here.
@@ -425,6 +425,7 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
 
   function CanvasGraphics(canvasCtx, commonObjs, objs, canvasFactory,
                           webGLContext, imageLayer) {
+    // CanvasRenderingContext2D { canvas: [Canvas 1224x792] }
     this.ctx = canvasCtx;
     this.current = new CanvasExtraState();
     this.stateStack = [];
@@ -822,10 +823,13 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
         }
 
         fnId = fnArray[i];
-        // console.log("exe", this, lookup[fnId]);
+        // console.log('exe', lookup[fnId]);
 
         if (fnId !== OPS.dependency) {
+          const id = this.setIdColor();
+          this.addData(id, 'op', [lookup[fnId]]);
           this[fnId].apply(this, argsArray[i]);
+          this.idDone(true);
         } else {
           for (const depObjId of argsArray[i]) {
             const objsPool = depObjId.startsWith('g_') ? commonObjs : objs;
@@ -1096,12 +1100,20 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
       this._cachedGetSinglePixelWidth = null;
     },
 
-    setIdColor(ctx) {
-      const color = idToHex(this._external_data.id);
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      // console.log(color);
+    setIdColor() {
+      const id = this._external_data.id;
       this._external_data.id++;
+      return id;
+    },
+
+    idDone(call = false) {
+      if (this._external_data.cb) {
+        this._external_data.cb(this._external_data.id);
+      }
+    },
+
+    addData(id, name, values) {
+      this._external_data.data.push({ id, name, values, });
     },
 
     // Path
@@ -1109,12 +1121,11 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
       var ctx = this.ctx;
       var current = this.current;
       var x = current.x, y = current.y;
+      const id = this.setIdColor();
       for (var i = 0, j = 0, ii = ops.length; i < ii; i++) {
-        this.setIdColor(ctx);
-
         switch (ops[i] | 0) {
           case OPS.rectangle:
-            // console.log('  rectangle', this.ctx);
+            this.addData(id, 'rectangle', args.slice(j, j + 4));
             x = args[j++];
             y = args[j++];
             var width = args[j++];
@@ -1135,45 +1146,46 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
             this.ctx.closePath();
             break;
           case OPS.moveTo:
+            this.addData(id, 'moveTo', args.slice(j, j + 2));
             x = args[j++];
             y = args[j++];
-            // console.log('  moveTo', x, y);//, this.ctx, x, y);
             ctx.moveTo(x, y);
             break;
           case OPS.lineTo:
+            this.addData(id, 'lineTo', args.slice(j, j + 2));
             x = args[j++];
             y = args[j++];
-            // console.log('  lineTo', x, y);
             ctx.lineTo(x, y);
             break;
           case OPS.curveTo:
+            this.addData(id, 'curveTo', args.slice(j, j + 6));
             x = args[j + 4];
             y = args[j + 5];
-            // console.log('  curveTo');
             ctx.bezierCurveTo(args[j], args[j + 1], args[j + 2], args[j + 3],
                               x, y);
             j += 6;
             break;
           case OPS.curveTo2:
+            this.addData(id, 'curveTo2', args.slice(j, j + 4));
             ctx.bezierCurveTo(x, y, args[j], args[j + 1],
                               args[j + 2], args[j + 3]);
             x = args[j + 2];
             y = args[j + 3];
             j += 4;
-            // console.log('  curveTo2');
             break;
           case OPS.curveTo3:
+            this.addData(id, 'curveTo3', args.slice(j, j + 4));
             x = args[j + 2];
             y = args[j + 3];
             ctx.bezierCurveTo(args[j], args[j + 1], x, y, x, y);
-            // console.log('  curveTo3');
             j += 4;
             break;
           case OPS.closePath:
-            // console.log('  closePath', x, y);
+            this.addData(id, 'closePath', []);
             ctx.closePath();
             break;
         }
+        this.idDone();
       }
       current.setCurrentPoint(x, y);
     },
@@ -1543,10 +1555,10 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
 
       ctx.lineWidth = lineWidth;
 
-      // console.log(this._external_data.id, idToHex(this._external_data.id));
-      // ctx.fillStyle = idToHex(this._external_data.id);
-      // ctx.strokeStyle = idToHex(this._external_data.id);
-      this.setIdColor(ctx);
+      const id = this.setIdColor();
+      this.addData(id, 'text', [glyphs.map((g) => {
+        return g.unicode;
+      }).join('')]);
 
       var x = 0, i;
       for (i = 0; i < glyphsLength; ++i) {
@@ -1624,6 +1636,7 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
       } else {
         current.x += x * textHScale;
       }
+      this.idDone();
       ctx.restore();
     },
 
